@@ -453,7 +453,7 @@ traits:
 
 
 
-###Custom Data Types
+### Custom Data Types
 
 Understanding RAML Data Types - 
 * Provides a concise and powerful way of describing the data in an API.
@@ -819,7 +819,7 @@ It is always recommended to use a neutral format like **YAML** for creating Requ
 
 Refer - 
 
-[Custom Data-Types](###custom-data-types) and [Examples](###examples) section
+[Custom Data-Types](#custom-data-types) and [Examples](#examples) section
 
 ![alt_text](images/18-createdatatypes.png "Create Datatypes")
 
