@@ -45,7 +45,29 @@
 
 ## Table of contents
 
-[TOC]
+* [Introduction](#introduction)
+  * [Audience](#audience)
+  * [References](#references)
+* [Overview](#overview)
+* [Common API Headers](#common-api-headers)
+* [Common API Faults](#common-api-faults)
+* [Common API Security](#common-api-security)
+* [Common API ResourceTypes](#common-api-resourcetypes)
+* [RAML API Template - For Design Admins](#raml-api-template---for-design-admins)
+  * [API Metadata](#api-metadata)
+  * [Importing Common API Fragments](#importing-common-api-fragments)
+  * [Custom Data Types](#custom-data-types)
+  * [Examples](#examples)
+  * [Libraries](#libraries)
+  * [API Resources](#api-resources)
+    * [API Heartbeat](#api-heartbeat)
+    * [Using method-collection resourceType](#using-method-collection-resourcetype)
+    * [Documentation Panel](#documentation-panel)
+* [RAML API Template - For API Designers](#raml-api-template---for-api-designers)
+  * [Import API template from Anypoint Exchange](#import-api-template-from-anypoint-exchange)
+  * [Create Data Types and Examples](#create-data-types-and-examples)
+  * [Create API Resource Hierarchy](#create-api-resource-hierarchy)
+  * [Add Data Types and Examples to ResourceTypes](#add-data-types-and-examples-to-resourcetypes)
 
 
 ## Introduction
@@ -483,7 +505,7 @@ Some best practices to keep in mind while defining custom data types -
 
     The types defined in the Library can be referenced as API requests or responses in the Specification. In the API Template, the **_custom-types_**.raml file is a **_library_**, and references the data objects and the responses.
 
-![alt_text](images/8-customdatatypes-1.png "Custom Datatypes")
+![alt_text](images/8-customdatatypes-2.png "Custom Datatypes")
 
 
 ### Examples 
