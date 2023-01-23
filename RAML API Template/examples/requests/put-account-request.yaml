@@ -1,0 +1,15 @@
+name: "Eduard Walker"
+phone: "1-(318)596-8473"
+email: "ewalker0@liveinternet.ru"
+billingAddress:
+ street: "Pleasure 4598"
+ city: "Shreveport"
+ state: "Louisiana"
+ postalCode: "71105"
+ country: "United States"
+shippingAddress:
+ street: "Autumn Leaf 3"
+ city: "Jackson"
+ state: "Mississippi"
+ postalCode: "39204"
+ country: "United States"

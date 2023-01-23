@@ -1,0 +1,10 @@
+#%RAML 1.0 SecurityScheme
+type: OAuth 2.0
+description: Supports Oauth 2.0 for Authenticating API Requests
+describedBy:
+  queryParameters:
+    access_token:
+      description: |
+             Used to send a valid OAuth 2 access token. Do not use with
+             the "Authorization" header. Bearer Token approach preferred.
+      type: string

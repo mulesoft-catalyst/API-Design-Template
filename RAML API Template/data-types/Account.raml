@@ -1,0 +1,35 @@
+#%RAML 1.0 DataType
+type: object
+description: Account datatype
+additionalProperties: false
+properties: 
+  id?: 
+    type: string | integer
+    description: Account Id
+  nativeId?: 
+    type: string
+    description: Account NativeId
+  name?: 
+    type: string
+    description: Name of the Account
+  phone?: 
+    type: string
+    description: Account Contact number
+  email?: 
+    type: string
+    description: Email address
+  createdDate:
+    type: datetime
+    example: 2022-03-24T14:00:00.000Z
+    required: false
+    description: Account created datetime
+  billingAddress?: !include Address.raml
+  shippingAddress?: !include Address.raml
+  lastModifiedDate:
+    type: datetime
+    example: 2022-03-24T14:00:00.000Z
+    required: false
+    description: Account Last Update datetime
+  lastModifiedById?: 
+    type: string | integer
+    description: Account last modified by
