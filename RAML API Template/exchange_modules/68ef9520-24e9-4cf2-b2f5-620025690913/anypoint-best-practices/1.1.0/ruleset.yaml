@@ -1,0 +1,696 @@
+#%Validation Profile 1.0
+
+profile: Anypoint Best Practices
+
+description: |
+  This ruleset contains over 30 best practices for APIs to be used, maintained, and consumed across Anypoint Platform and beyond.
+
+tags:
+  - best-practices
+
+violation:
+  - resource-use-lowercase
+  - media-type-headers-response
+  - base-url-pattern-server
+  - camel-case-fields
+  - use-schemas-responses
+  - use-schemas-requests
+  - provide-examples
+  - api-must-have-title
+  - operations-must-have-identifiers
+  - no-2xx-response
+  - path-params
+  - no-eval-in-markdown
+  - no-script-tags-in-markdown
+  - path-declarations-must-exist
+  - path-not-include-query
+  - duplicated-entry-in-enum
+
+warning:
+  - api-must-have-description
+  - api-must-have-documentation
+  - operations-must-have-descriptions
+  - responses-must-have-descriptions
+  - headers-must-have-descriptions
+  - query-params-must-have-descriptions
+  - property-shape-ranges-must-have-descriptions
+  - node-shapes-must-have-descriptions
+  - preferred-media-type-representations
+  - standard-get-status-codes
+  - standard-post-status-codes
+  - standard-put-status-codes
+  - standard-delete-status-codes
+  - not-anonymous-types
+  - request-response-antipattern
+  - heterogeneous-union
+  - nil-union-antipattern
+  - unsupported-response-schema-shapes
+  - non-scalar-url-parameters
+  - open-schemas-ignored
+  - path-keys-no-trailing-slash
+  - date-only-representation
+  - date-time-representation
+
+validations:
+
+  duplicated-entry-in-enum:
+    message: Enum values must be unique.
+    targetClass: shapes.ScalarShape
+    rego: |
+      enum = object.get($node, "http://www.w3.org/ns/shacl#in",[])
+      enumValues = find with data.link as enum
+      props = [r | d = enumValues[_]; is_object(d); n=find with data.link as d; r=n["http://a.ml/vocabularies/data#value"] ]
+      propsSet = {r | v = props[_]; r=v}
+      $result = (count(props) == count(propsSet))
+
+  path-not-include-query:
+    message: "Don't put query string items in the path. They belong in parameters with `in: query`."
+    targetClass: apiContract.EndPoint
+    not:
+      propertyConstraints:
+        apiContract.path:
+          pattern: '.*\?.*'
+
+  path-keys-no-trailing-slash:
+    message: |
+      Keep trailing slashes off of paths, as it can cause some confusion. Some web tooling (like mock servers, real
+      servers, code generators, application frameworks, etc.) will treat example.com/foo and example.com/foo/ as the
+      same thing, but other tooling will not. Avoid any confusion by just documenting them without the slash, and maybe
+      some tooling will let people shove a / on there when they're using it or maybe not, but at least the docs are
+      suggesting how it should be done properly.
+    targetClass: apiContract.EndPoint
+    not:
+      propertyConstraints:
+        apiContract.path:
+          pattern: '\/$'
+
+  path-declarations-must-exist:
+    message: Path parameter declarations are required. For example, `/given/{}` is invalid.
+    targetClass: apiContract.EndPoint
+    not:
+      propertyConstraints:
+        apiContract.path:
+          pattern: "{}"
+
+  no-eval-in-markdown:
+    message: |
+      This rule protects against cross-site scripting (XSS) attacks that could happen when you add description
+      documents from third parties and use the parsed content rendered in HTML/JS. If one of those third parties
+      does something like inject `eval()` JavaScript statements, it could lead to an XSS attack.
+    targetClass: apiContract.WebAPI
+    not:
+      propertyConstraints:
+        core.description:
+          pattern: 'eval\('
+
+  no-script-tags-in-markdown:
+    message: |
+      This rule protects against a potential exploit, that can occur when you add description documents from third parties then
+      generate HTML documentation. If one of those third parties does something like inject `<script>` tags, they
+      could easily execute arbitrary code on your domain.
+    targetClass: apiContract.WebAPI
+    not:
+      propertyConstraints:
+        core.description:
+          pattern: "<script>"
+
+  resource-use-lowercase:
+    message: |
+      Naming conventions for resources:
+      - Use lowercase (example: /accounts)
+      - For resources with more than 2 words
+          - use lowercase for both words (example: /lineitems) or
+          - use kebab-case (aka spinal-case) (example: /line-items)
+    targetClass: apiContract.EndPoint
+    propertyConstraints:
+      apiContract.path:
+        pattern: '^[a-z1-9\/\{\}-]+$'
+
+  media-type-headers-response:
+    message: |
+      For the response: use ‘Content-Type’ header
+    targetClass: apiContract.Response
+    propertyConstraints:
+      apiContract.header:
+        atLeast:
+          count: 1
+          validation:
+            propertyConstraints:
+              core.name:
+                in:
+                  - Content-Type
+                  - content-type
+
+  base-url-pattern-server:
+    message: Include “api” and the version of the API in the base URL. For example, `domain/api/v1`.
+    targetClass: apiContract.Server
+    or:
+      - propertyConstraints:
+          core.urlTemplate:
+            pattern: "/api/v[0-9]+"
+      - propertyConstraints:
+          core.urlTemplate:
+            pattern: "/api/[0-9].[0.9]"
+
+  camel-case-fields:
+    message: Use camelCase for all of the field names. Avoid underscores.
+    targetClass: shacl.PropertyShape
+    propertyConstraints:
+      shacl.name:
+        pattern: "^[a-z]+[1-9]?([A-Z][a-z1-9]+)*$"
+
+  date-time-representation:
+    message: >
+      Use the following ISO8601 standard date-time formats for timestaps
+      encoding properties:
+
+      - UTC
+        - 2016-10-27T13:42:21+00:00 (+00:00 is the time zone offset)
+        - 2016-10-27T13:42:21Z (Z is a place holder for local time zone)
+    targetClass: shapes.ScalarShape
+    if:
+      propertyConstraints:
+        shacl.name:
+          in:
+            - createdAt
+            - updatedAt
+    then:
+      propertyConstraints:
+        shapes.format:
+          minCount: 1
+          in:
+            - date-time
+            - rfc3339
+            
+  date-only-representation:
+    message: >
+      Use standard date formats: ISO8601
+      Use calendar date:
+        2016-10-27
+    targetClass: shapes.ScalarShape
+    if:
+      propertyConstraints:
+        shacl.name:
+          pattern: ^.*[dD]ate.*$
+    then:
+      or:
+        - propertyConstraints:
+            shapes.format:
+              minCount: 1
+              in:
+                - date
+        - propertyConstraints:
+            shacl.datatype:
+              minCount: 1
+              in:
+                - http://www.w3.org/2001/XMLSchema#date
+
+  use-schemas-responses:
+    message: |
+      Use schemas or data types in the specification to determine the format of the responses.
+    targetClass: apiContract.Response
+    propertyConstraints:
+      apiContract.payload / shapes.schema:
+        minCount: 1
+
+  use-schemas-requests:
+    message: |
+      Use schemas or data types in the specification to determine the format of the requests.
+    targetClass: apiContract.Request
+    rego: |
+      nested_nodes[payloads] with data.nodes as object.get($node,"http://a.ml/vocabularies/apiContract#payload",[])
+      
+      payload = payloads[_]
+      
+      nested_nodes[schemas] with data.nodes as payload["http://a.ml/vocabularies/shapes#schema"]
+      
+      count(schemas) > 0
+      
+      types := { type |
+        schema := schemas[_]
+        schema_types := schema["@type"]
+        maybe_type = schema_types[_]
+        maybe_type != "http://a.ml/vocabularies/shapes#Shape"
+        maybe_type != "http://www.w3.org/ns/shacl#Shape"
+        maybe_type != "http://a.ml/vocabularies/shapes#AnyShape"
+        maybe_type != "http://a.ml/vocabularies/document#DomainElement"
+        type = maybe_type
+      }
+      
+      $result = count(types) > 0
+
+  provide-examples:
+    message: Always include examples in requests and responses.
+    targetClass: apiContract.Payload
+    rego: |
+      schema = find with data.link as $node["http://a.ml/vocabularies/shapes#schema"]
+
+      nested_nodes[examples] with data.nodes as object.get(schema, "http://a.ml/vocabularies/apiContract#examples", [])
+
+      examples_from_this_payload = { element |
+        example = examples[_]
+        sourcemap = find with data.link as object.get(example, "http://a.ml/vocabularies/document-source-maps#sources", [])
+        tracked_element = find with data.link as object.get(sourcemap, "http://a.ml/vocabularies/document-source-maps#tracked-element", [])
+        values_contains(tracked_element["http://a.ml/vocabularies/document-source-maps#value"], $node["@id"])
+        element := example
+      }
+
+      $result := (count(examples_from_this_payload) > 0)
+
+  api-must-have-title:
+    message: Provide the title for the API.
+    targetClass: apiContract.WebAPI
+    propertyConstraints:
+      core.name:
+        minCount: 1
+
+  api-must-have-description:
+    message: Provide the description for the API.
+    targetClass: apiContract.WebAPI
+    propertyConstraints:
+      core.description:
+        minCount: 1
+
+  api-must-have-documentation:
+    message: Provide the documentation for the API.
+    targetClass: apiContract.WebAPI
+    propertyConstraints:
+      core.documentation:
+        minCount: 1
+
+  operations-must-have-identifiers:
+    message: Provide identifiers or display names for the operations.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      core.name:
+        minCount: 1
+
+  operations-must-have-descriptions:
+    message: Provide descriptions for the operations.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      core.description:
+        minCount: 1
+
+  responses-must-have-descriptions:
+    message: Provide descriptions for the responses.
+    targetClass: apiContract.Response
+    propertyConstraints:
+      core.description:
+        minCount: 1
+
+  headers-must-have-descriptions:
+    message: Provide descriptions for headers.
+    targetClass: apiContract.Parameter
+    if:
+      propertyConstraints:
+        apiContract.binding:
+          pattern: header
+    then:
+      propertyConstraints:
+        core.description:
+          minCount: 1
+
+  query-params-must-have-descriptions:
+    message: Provide descriptions for query params.
+    targetClass: apiContract.Parameter
+    if:
+      propertyConstraints:
+        apiContract.binding:
+          pattern: query
+    then:
+      propertyConstraints:
+        core.description:
+          minCount: 1
+
+  property-shape-ranges-must-have-descriptions:
+    message: Provide descriptions for properties.
+    targetClass: shacl.PropertyShape
+    propertyConstraints:
+      shapes.range / core.description:
+        minCount: 1
+
+  node-shapes-must-have-descriptions:
+    message: Provide descriptions for data shapes.
+    targetClass: shacl.NodeShape
+    propertyConstraints:
+      core.description:
+        minCount: 1
+
+  preferred-media-type-representations:
+    message: |
+      If there is no standard media type and format, use extensible formats such as JSON
+      (application/json) and XML (application/xml).
+    targetClass: apiContract.Payload
+    propertyConstraints:
+      core.mediaType:
+        in:
+          - application/json
+          - application/xml
+
+  standard-get-status-codes:
+    message: |
+      The following response codes should be used as standard for GET operations: 200,204,304,400,401,403,404,405,406,408,410,412,415,429,500,502,503,504,509,510,511,550,598,
+      599. Avoid not defined return codes.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        apiContract.method:
+          pattern: get
+    then:
+      propertyConstraints:
+        apiContract.returns / apiContract.statusCode:
+          in:
+            - 200
+            - 204
+            - 304
+            - 400
+            - 401
+            - 403
+            - 404
+            - 405
+            - 406
+            - 408
+            - 410
+            - 412
+            - 415
+            - 429
+            - 500
+            - 502
+            - 503
+            - 504
+            - 509
+            - 510
+            - 511
+            - 550
+            - 598
+            - 599
+
+  standard-post-status-codes:
+    message: |
+      The following response codes should be used as standard for POST operations:
+      201,202,400,401,403,404,405,406,408,409,410,415,429,500,502,503,504,509,510,511,550,598,599.
+      Avoid not defined return codes.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        apiContract.method:
+          pattern: post
+    then:
+      propertyConstraints:
+        apiContract.returns / apiContract.statusCode:
+          in:
+            - 201
+            - 202
+            - 400
+            - 401
+            - 403
+            - 404
+            - 405
+            - 406
+            - 408
+            - 409
+            - 410
+            - 415
+            - 429
+            - 500
+            - 502
+            - 503
+            - 504
+            - 509
+            - 510
+            - 511
+            - 550
+            - 598
+            - 599
+
+  standard-put-status-codes:
+    message: |
+      The following response codes should be used as standard for PUT operations:
+      200,202,204,400,401,403,404,405,406,408,409,410,412,415,429,500,502,503,504,509,510,511,550,
+      598,599. Avoid not defined return codes.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        apiContract.method:
+          pattern: put
+    then:
+      propertyConstraints:
+        apiContract.returns / apiContract.statusCode:
+          in:
+            - 200
+            - 202
+            - 204
+            - 400
+            - 401
+            - 403
+            - 404
+            - 405
+            - 406
+            - 408
+            - 409
+            - 410
+            - 412
+            - 415
+            - 429
+            - 500
+            - 502
+            - 503
+            - 504
+            - 509
+            - 510
+            - 511
+            - 550
+            - 598
+            - 599
+
+  standard-delete-status-codes:
+    message: |
+      The following response codes should be used as standard for DELETE operations: 200,202,204,400,401,403,404,405,
+      406,408,409,410,429,500,502,503,504,509,510,511,550,598,599]. Avoid not defined return codes.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        apiContract.method:
+          pattern: delete
+    then:
+      propertyConstraints:
+        apiContract.returns / apiContract.statusCode:
+          in:
+            - 200
+            - 202
+            - 204
+            - 400
+            - 401
+            - 403
+            - 404
+            - 405
+            - 406
+            - 408
+            - 409
+            - 410
+            - 429
+            - 500
+            - 502
+            - 503
+            - 504
+            - 509
+            - 510
+            - 511
+            - 550
+            - 598
+            - 599
+
+  not-anonymous-types:
+    message: |
+      Instead of inlining the definition of schemas in HTTP responses,
+      reference declared types to provide descriptive names for the federated types.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        apiContract.method:
+          pattern: "get"
+    then:
+      propertyConstraints:
+        apiContract.returns / apiContract.payload:
+          nested:
+            if:
+              propertyConstraints:
+                core.mediaType:
+                  pattern: "application/json"
+                shapes.schema:
+                  minCount: 1
+            then:
+              propertyConstraints:
+                shapes.schema / sourcemaps.sources / sourcemaps.declared-element:
+                  minCount: 1
+
+  path-params:
+    message: |
+      Path parameters are correct and valid if the following requirements are met:
+        - For every parameter referenced in the path string, for instance: `/users/{userId}`, the parameter must be defined in
+           either the `path.parameters` or `operation.parameters` objects. Nonstandard HTTP operations will be silently
+           ignored.
+        - Every `path.parameters` and `operation.parameters` parameter must be used in the path string.
+    targetClass: apiContract.EndPoint
+    rego: |
+      path = $node["http://a.ml/vocabularies/apiContract#path"]
+      pathVariables = {v | ms = regex.find_all_string_submatch_n("{([a-z0-9_]+)}", path, -1); m = ms[_]; v = m[1] }
+
+      nested_nodes[endpointParameters] with data.nodes as object.get($node, "http://a.ml/vocabularies/apiContract#parameter", [])
+      
+      endpointParameterNames = { desc |
+        parameter = endpointParameters[_]
+        name = parameter["http://a.ml/vocabularies/core#name"]
+        parameter["http://a.ml/vocabularies/apiContract#binding"] = "path"
+        desc = name
+      }
+      
+      nested_nodes[operations] with data.nodes as object.get($node, "http://a.ml/vocabularies/apiContract#supportedOperation", [])
+      operation = operations[_]
+
+      nested_nodes[requests] with data.nodes as object.get(operation, "http://a.ml/vocabularies/apiContract#expects", [])
+      request = requests[_]
+
+      nested_nodes[operationParameters] with data.nodes as object.get(request, "http://a.ml/vocabularies/apiContract#uriParameter", [])
+
+      operationParameterNames = { desc |
+        parameter = operationParameters[_]
+        name = parameter["http://a.ml/vocabularies/core#name"]
+        parameter["http://a.ml/vocabularies/apiContract#binding"] = "path"
+        desc = name
+      }
+
+      parameterNames := endpointParameterNames | operationParameterNames
+
+      $result = (pathVariables == parameterNames)
+
+
+  no-2xx-response:
+    message: |
+      HTTP resources not returning a 2xx success response do not describe normal responses from the API.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      apiContract.returns:
+        atLeast:
+          count: 1
+          validation:
+            propertyConstraints:
+              apiContract.statusCode:
+                pattern: "2[0-9][0-9]"
+
+  request-response-antipattern:
+    message: |
+      Resource schemas should describe the information of the exposed resource, not a Request/Response RPC message wrapper
+      containing the resource and out-of-band information.
+    targetClass: shacl.NodeShape
+    not:
+      or:
+        - propertyConstraints:
+            shacl.name:
+              pattern: ".*(r|R)equest.*"
+        - propertyConstraints:
+            shacl.name:
+              pattern: ".*(r|R)esponse.*"
+
+  heterogeneous-union:
+    message: |
+      Unions between different types are not a good design practice. Object
+      shapes with scalar flags/properties are an acceptable alternative.
+    targetClass: shapes.AnyShape
+    rego: |
+      nested_nodes[members_xone] with data.nodes as object.get($node,"http://www.w3.org/ns/shacl#xone",[])
+      nested_nodes[members_or] with data.nodes as object.get($node,"http://www.w3.org/ns/shacl#or",[])
+      nested_nodes[members_anyof] with data.nodes as object.get($node,"http://a.ml/vocabularies/shapes#anyOf",[])
+      members = array.concat(members_xone, array.concat(members_or, members_anyof))
+      types := { type |
+        member := members[_]
+        member_types := member["@type"]
+        maybe_type = member_types[_]
+        maybe_type != "http://a.ml/vocabularies/shapes#Shape"
+        maybe_type != "http://www.w3.org/ns/shacl#Shape"
+        maybe_type != "http://a.ml/vocabularies/shapes#AnyShape"
+        maybe_type != "http://a.ml/vocabularies/document#DomainElement"
+        type = maybe_type
+      }
+      $result = (count(types) <= 1) # 0 if there is no xone,or,anyof at all
+
+  nil-union-antipattern:
+    message: |
+      Nullable types might lead to null pointer errors.
+      Use the optional properties instead.
+    targetClass: shapes.AnyShape
+    rego: |
+      nested_nodes[members_xone] with data.nodes as object.get($node,"http://www.w3.org/ns/shacl#xone",[])
+      nested_nodes[members_or] with data.nodes as object.get($node,"http://www.w3.org/ns/shacl#or",[])
+      nested_nodes[members_anyof] with data.nodes as object.get($node,"http://a.ml/vocabularies/shapes#anyOf",[])
+      members = array.concat(members_xone, array.concat(members_or, members_anyof))
+      count(members) == 2
+      types := { type |
+        member := members[_]
+        member_types := member["@type"]
+        maybe_type = member_types[_]
+        maybe_type != "http://a.ml/vocabularies/shapes#Shape"
+        maybe_type != "http://www.w3.org/ns/shacl#Shape"
+        maybe_type != "http://a.ml/vocabularies/shapes#AnyShape"
+        maybe_type != "http://a.ml/vocabularies/document#DomainElement"
+        type = maybe_type
+      }
+      count(types) > 1
+      $result = types["http://a.ml/vocabularies/shapes#NilShape"]
+
+
+  unsupported-response-schema-shapes:
+    message: |
+      This datatype is not supported and will create a problem when adding the API to Anypoint DataGraph.
+    targetClass: shapes.AnyShape
+    not:
+      or:
+        - propertyConstraints:
+            "@type":
+              pattern: ".*MatrixShape"
+        - propertyConstraints:
+            "@type":
+              pattern: ".*SchemaShape"
+        - propertyConstraints:
+            "@type":
+              pattern: ".*FileShape"
+        - propertyConstraints:
+            "@type":
+              pattern: ".*TupleShape"
+
+
+  non-scalar-url-parameters:
+    message: |
+      Encoding complex objects into URL parameters is not a standardized way of passing information that cannot be
+      automatically processed. Complex information should be passed in the body of the HTTP request.
+    targetClass: apiContract.Parameter
+    if:
+      or:
+        - propertyConstraints:
+            apiContract.binding:
+              pattern: "path"
+        - propertyConstraints:
+            apiContract.binding:
+              pattern: "query"
+    then:
+      or:
+        - propertyConstraints:
+            shapes.schema / shacl.datatype:
+              minCount: 1
+        - propertyConstraints:
+            shapes.schema / shapes.items / shacl.datatype:
+              minCount: 1
+
+  open-schemas-ignored:
+    message: |
+      Open schemas with a set of variable properties cannot be pre-processed by clients.
+      Define a closed schema with a finite set of properties described statically in the API definition.
+      AsyncAPI or OAS API definitions' object schemas are open by default and must be explicitly
+      closed using `additionalProperties: false`.
+    targetClass: shacl.NodeShape
+    not:
+      propertyConstraints:
+        shacl.closed:
+          in:
+            - false

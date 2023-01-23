@@ -1,0 +1,18 @@
+#%RAML 1.0 DataType
+type: object
+displayName: API Fault Responses Datatype
+description: The Data format for API Fault Responses
+additionalProperties: false
+properties:
+  status: 
+    type: string
+    description: Default HTTP Status or Custom HTTP Status
+  title: 
+    type: string
+    description: Short Title of the Fault or error
+  correlationId: 
+    type: string
+    description: Event traceability identifier
+  detail?: 
+    type: string
+    description: Fault details

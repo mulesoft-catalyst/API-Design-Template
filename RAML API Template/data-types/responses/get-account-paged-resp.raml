@@ -1,0 +1,25 @@
+#%RAML 1.0 DataType
+type: object
+displayName: Fetch Account Data
+description: Fetch Account Data using pagination
+additionalProperties: false
+properties: 
+  page?: 
+    description: Current Page number of Accounts
+    type: integer
+  totalsCount?:
+    description: Total Number of Accounts
+    type: integer
+  isLastPage?: 
+    description: Is the current page also the Last Page?
+    type: boolean
+  lastPageNumber?: 
+    description: Last Page Number
+    type: integer
+  itemsPerPage?: 
+    description: Number of Accounts per page
+    type: integer
+  entries?: 
+    type: array
+    description: Account entries
+    items: !include /data-types/Account.raml

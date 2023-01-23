@@ -1,0 +1,36 @@
+#%RAML 1.0 ResourceType
+  #This serves as a Primary ResourceType that could be extended by any API Resource/Method. 
+  #It provides - 
+  #  1. Optional use of any API Method for an API Resource
+  #  2. Pre-defined Response traits
+  #  3. Externalized and enforced Description fields for each API Method
+  #  4. Externalized response Types and Examples
+
+  get?:
+    description: <<getDescription>>
+    is: [ 200-response: {responseType: <<getResponseType>>, responseExample: <<getResponseExample>>}, fault-responses, common-headers ]
+        
+  post?:
+    description: <<postDescription>>
+    body:
+      type: <<postBodyType>>
+      example: <<postBodyExample>>
+    is: [ 201-response: {responseType: <<postResponseType>>, responseExample: <<postResponseExample>>}, 202-response: {responseType: <<postResponseType>>, responseExample: <<postResponseExample>>}, fault-responses, common-headers ]        
+
+  put?:
+    description: <<putDescription>>
+    body:
+      type: <<putBodyType>>
+      example: <<putBodyExample>>
+    is: [ 200-response: {responseType: <<putResponseType>>, responseExample: <<putResponseExample>>}, fault-responses, common-headers ]        
+
+  patch?:
+    description: <<patchDescription>>
+    body:
+      type: <<patchBodyType>>
+      example: <<patchBodyExample>>
+    is: [ 200-response: {responseType: <<patchResponseType>>, responseExample: <<patchResponseExample>>}, 201-response: {responseType: <<patchResponseType>>, responseExample: <<patchResponseExample>>}, 202-response: {responseType: <<patchResponseType>>, responseExample: <<patchResponseExample>>}, 204-response,  fault-responses, common-headers ]        
+  
+  delete?:
+    description: <<deleteDescription>>
+    is: [ 204-response, fault-responses-delete, common-headers ]                

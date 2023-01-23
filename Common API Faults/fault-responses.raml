@@ -1,0 +1,68 @@
+#%RAML 1.0 Trait
+  responses:  
+    400:
+      description: !include documentation/400-description.raml
+      body: 
+        application/json: 
+          type: !include types/api-fault.raml
+          example: !include examples/400.json
+    401:
+      description: !include documentation/401-description.raml
+      body:
+        application/json:
+          type: !include types/api-fault.raml
+          example: !include examples/401.json
+    403:
+      description: !include documentation/403-description.raml
+      body:
+        application/json:
+          type: !include types/api-fault.raml
+          example: !include examples/403.json
+    404:
+      description: !include documentation/404-description.raml
+      body: 
+        application/json: 
+          type: !include types/api-fault.raml
+          example: !include examples/404.json
+    405:
+      description: !include documentation/405-description.raml
+      body: 
+        application/json: 
+          type: !include types/api-fault.raml
+          example: !include examples/405.json
+    406:
+      description: !include documentation/406-description.raml
+      body: 
+        application/json: 
+          type: !include types/api-fault.raml
+          example: !include examples/406.json
+    415:
+      description: !include documentation/415-description.raml
+      body: 
+        application/json: 
+          type: !include types/api-fault.raml
+          example: !include examples/415.json
+    429:
+        description: !include documentation/429-description.raml
+        body:
+          application/json:
+            type: !include types/api-fault.raml
+            example: !include examples/429.json
+    500:
+      description: !include documentation/500-description.raml
+      body: 
+        application/json: 
+          type: !include types/api-fault.raml
+          example: !include examples/500.json
+    503:
+      description: !include documentation/503-description.raml
+      body:
+        application/json:
+          type: !include types/api-fault.raml
+          example: !include examples/503.json
+    504:
+      description: !include documentation/504-description.raml
+      body:
+        application/json:
+          type: !include types/api-fault.raml
+          example: !include examples/504.json

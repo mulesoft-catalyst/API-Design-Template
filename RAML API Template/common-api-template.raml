@@ -1,0 +1,89 @@
+#%RAML 1.0 
+title: API Template             #<< Update API Title >>
+description: RAML API Template  #<< Update API description >>
+version: v1
+baseUri: https://apiname.ir-e1.cloudhub.io/api/v1 
+protocols: [ HTTPS  ] 
+
+mediaType: [application/json, application/xml]
+
+documentation: 
+  - !include documentation/api-doc.raml
+     
+uses:
+  customtype: data-types/custom-types.raml
+ 
+resourceTypes:
+  method-collection: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-resourcetypes/1.0.0/method-collection.raml
+  file-item: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-resourcetypes/1.0.0/file-input-request.raml
+  api-health: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-resourcetypes/1.0.0/api-health.raml
+       
+traits:
+  200-response: !include libraries/traits/responses/200-response.raml
+  201-response: !include libraries/traits/responses/201-response.raml
+  202-response: !include libraries/traits/responses/202-response.raml
+  204-response: !include libraries/traits/responses/204-response.raml
+  fault-responses: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-faults/1.0.0/fault-responses.raml
+  fault-responses-delete: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-faults/1.0.0/fault-responses-DELETE.raml
+  client-id-auth: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-security/1.0.0/client-id-auth.raml
+  common-headers: !include /exchange_modules/287b4882-fa18-431a-9614-fc0615220650/common-api-headers/1.0.0/common-headers.raml
+  paged-accounts-query: !include libraries/traits/custom-query-params/paged-account-query.raml
+                
+/status:
+  type: api-health
+
+# Add your API definition and resources hierarchy.
+# Refer below snippets for common RESTful methods - GET, POST, PATCH, PUT, DELETE
+# Add Example Data in the "examples" folder
+# Add Data-types for corresponding examples in "data-types" folder
+/accounts:
+  description: |
+    Working with accounts:
+    * Fetch accounts (based on updates)
+    * Create accounts
+  type:
+    method-collection: 
+      getDescription: Get all accounts based on pagination query
+      getResponseType: customtype.get-account-pages-resp
+      getResponseExample: !include /examples/responses/get-accounts-response.yaml
+      postDescription: Create an account
+      postBodyType: customtype.account
+      postBodyExample: !include /examples/requests/post-account-request.yaml
+      postResponseType: customtype.post-account-resp
+      postResponseExample: !include /examples/responses/post-account-response.yaml
+  
+  get:
+    displayName: GET Accounts Information #<<Add display names>>
+    is: [client-id-auth, paged-accounts-query]
+  post:
+    displayName: POST - Account #<<Add display names>>
+    is: [client-id-auth]
+
+  /{id}:
+    description: |
+      Working with accounts:
+      * Retrieving account details
+      * Updating account details
+      * Deleting an account
+    type:
+      method-collection:
+        getDescription: Get Account by ID
+        getResponseType: customtype.account
+        getResponseExample: !include /examples/responses/get-accountById-response.yaml
+        putDescription: Update Account by ID
+        putBodyType: customtype.account
+        putBodyExample: !include /examples/requests/put-account-request.yaml
+        putResponseType: customtype.put-account-resp
+        putResponseExample: !include /examples/responses/put-accountById-response.yaml
+        deleteDescription: Delete Account by ID
+
+    get:
+      displayName: GET - Account by ID #<<Add display names>>
+      is: [client-id-auth]
+    put:
+      displayName: PUT - Account by ID #<<Add display names>>
+      is: [client-id-auth]
+    delete:
+      displayName: DELETE - Account by ID #<<Add display names>>
+      is: [client-id-auth] 
+

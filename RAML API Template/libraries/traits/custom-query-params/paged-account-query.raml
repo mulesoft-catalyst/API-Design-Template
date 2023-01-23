@@ -1,0 +1,14 @@
+#%RAML 1.0 Trait
+queryParameters:
+  updatedAfter:
+    description: String of date and time between which the order were updated
+    type: datetime
+    example: 2022-03-24T14:00:00.000Z
+  page:
+    description: Requested page number of Accounts
+    type: integer
+    default: 1
+  itemsPerPage?:
+    description: Number of Accounts per page
+    type: integer
+    maximum: 50

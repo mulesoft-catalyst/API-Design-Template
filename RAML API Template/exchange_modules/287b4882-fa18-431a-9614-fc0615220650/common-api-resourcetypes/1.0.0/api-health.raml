@@ -1,0 +1,17 @@
+#%RAML 1.0 ResourceType
+    description: This resource provides an endpoint to monitor API Heart beat
+    get:
+      displayName: GET - API Heartbeat
+      description:  API Heartbeat
+      is: [ fault-responses ]
+      responses:
+        200:
+          description: API Heartbeat response
+          body:
+            application/json:
+              example: |
+                {
+                   "status": "OK",
+                   "version": "v1",
+                   "time": "2023-01-19T15:10:16Z"
+                }
